@@ -8,29 +8,14 @@ global active_index
 active_index = 0
 active_definition = 0
 client = discord.Client()
-
-def get_definitions(i):
-  if len(definitions) == 1:
-    return definitions[0]
-  if active_index == len(definitions)-1:
-    if i == 1:
-      index = 0
-    else:
-      index = len(definitions)-2
-  elif active_index == 0:
-    if i == -1:
-      index = len(definitions)-1
-    else:
-      index = 1
-  else:
-    index = active_index+i
-  return definitions[index]
   
 
+#turn on the discord bot
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
+#when someone asks for a definition, synonym, or antonym, get the definition and send the appropriate message
 @client.event
 async def on_message(message):
     words = message.content.split(" ")
@@ -82,7 +67,25 @@ async def on_message(message):
         await sent.add_reaction('➡️')
         await sent.add_reaction('🗑️')
 
+#cycle through all definitions of a word
+def get_definitions(i):
+  if len(definitions) == 1:
+    return definitions[0]
+  if active_index == len(definitions)-1:
+    if i == 1:
+      index = 0
+    else:
+      index = len(definitions)-2
+  elif active_index == 0:
+    if i == -1:
+      index = len(definitions)-1
+    else:
+      index = 1
+  else:
+    index = active_index+i
+  return definitions[index]
 
+#use the Oxford Dictionary to get a word definition
 def get_oxford_definitions(word_id):
   app_id = "37649a9a"
   app_key = "15e3748a364f3e2bc9bb2337ec223086"
@@ -96,7 +99,6 @@ def get_oxford_definitions(word_id):
   r = requests.get(url, headers = {'app_id': app_id, 'app_key': app_key})
 
 
-  #print("json \n" + json.dumps(r.json()))
 
   json = r.json()
   try:
@@ -117,6 +119,7 @@ def get_oxford_definitions(word_id):
             definitions.append(" *"+pos+"* - "+json["results"][i]["lexicalEntries"][j]["entries"][k]['senses'][l]['definitions'][m]+"\n")
   return definitions
 
+#use the urban dictionary to get urban definitions
 def get_urban_definitions(word_id):
   url = "https://mashape-community-urban-dictionary.p.rapidapi.com/define"
 
@@ -141,6 +144,8 @@ def get_urban_definitions(word_id):
 
   return definitions
 
+
+#use the merriam webster api to get synomynms
 def get_synonyms(word_id):
   
 
@@ -173,6 +178,8 @@ def get_synonyms(word_id):
     definitions.append(display)
   return definitions
 
+
+#use the merriam webster api to get antonyms
 def get_antonyms(word_id):
   url = "https://dictionaryapi.com/api/v3/references/thesaurus/json/"+word_id+"?key=9771ab70-6ed4-4e17-ac35-10e7b9ee60a4"
 
@@ -200,7 +207,7 @@ def get_antonyms(word_id):
 
 
 
-
+#let people cycle through definitions or synonyms
 @client.event
 async def on_reaction_add(reaction, user):
   global active_index
@@ -225,4 +232,3 @@ async def on_reaction_add(reaction, user):
           await reaction.message.delete()
 
 
-  
